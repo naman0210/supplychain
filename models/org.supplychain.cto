@@ -1,0 +1,211 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Write your model definitions here
+ */
+
+namespace org.supplychain
+
+participant Producer identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  o String Produce
+  --> Shipper_from_producer_to_processor[] shipperfromproducertoprocessor optional
+  o Integer[] shipmentnumber optional
+}
+
+asset Item identified by item_ID {
+  o String item_ID
+  o String name
+  o DateTime date
+  --> Producer producer
+  --> Shipment_from_producer_to_processor shipment_from_producer_to_processor optional
+}
+
+participant Shipper_from_producer_to_processor identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Producer producer
+}
+
+asset Shipment_from_producer_to_processor identified by shipment_ID {
+  o String shipment_ID 
+  o DateTime pickup
+  o DateTime delivered_date optional
+  --> Item[] items
+  --> Shipper_from_producer_to_processor shipperfromproducertoprocessor
+  --> Producer producer 
+  --> Processor processor 
+}
+
+participant Processor identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Item[] items optional
+  --> Shipper_from_processor_to_warehouse[] shipperfromprocessortowarehouse optional
+  o Integer[] shipmentnumber optional
+}
+
+asset Product identified by product_ID {
+  o String product_ID
+  --> Processor processor
+  --> Item[] items 
+  --> QI quality_inspector
+  o Boolean approved default=false
+  --> Warehouse warehouse optional
+  --> Retailer retailer optional
+  --> Shipment_from_processor_to_warehouse shipmentfromprocessortowarehouse optional
+  --> Shipment_from_warehouse_to_retailer shipmentfromwarehousetoretailer optional
+}
+
+participant QI identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+}
+
+participant Shipper_from_processor_to_warehouse identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Processor processor  
+}
+
+asset Shipment_from_processor_to_warehouse identified by shipment_ID {
+  o String shipment_ID
+  o DateTime pickup
+  o DateTime delivered_date optional
+  --> Product[] products
+  --> Warehouse warehouse
+  --> Processor processor
+  --> Shipper_from_processor_to_warehouse shipperfromprocessortowarehouse
+}
+
+participant Warehouse identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Product[] products optional
+  --> Shipper_from_warehouse_to_retailer shipperfromwarehousetoretailer optional
+  o Integer[] shipmentnumber optional
+}
+
+participant Shipper_from_warehouse_to_retailer identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Warehouse warehouse
+}
+
+asset Shipment_from_warehouse_to_retailer identified by shipment_ID {
+  o String shipment_ID
+  o DateTime pickup
+  o DateTime delivered_date optional
+  --> Product[] products
+  --> Retailer retailer
+  --> Warehouse warehouse
+  --> Shipper_from_warehouse_to_retailer shipperfromwarehousetoretailer
+}
+
+participant Retailer identified by GST_number {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Product[] products optional
+}
+
+transaction createItem {
+  o String item_ID
+  o String name
+  --> Producer producer //date will be added automatically and we check if this field is same as the invoker
+}
+
+transaction createshipperfromproducertoprocessor {
+  o String GST_number
+  o String name
+  o String email
+  o String location 
+   --> Producer producer  //we check if this field is same as the invoker
+}
+
+transaction createshipmentfromproducertoprocessor {
+  --> Item[] items
+  --> Producer producer 
+  --> Processor processor //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+}
+  
+transaction delveryconfirmedbyproducertoprocessorshipper {
+  --> Shipment_from_producer_to_processor shipmentfromproducertoprocessor
+}//adding delivered date to a shipment
+
+transaction createproduct {
+  o String product_ID
+  --> Processor processor
+  --> Item[] items 
+}//creating a product
+
+transaction qualityinspection {
+  --> Product product
+  o Boolean result
+}
+
+transaction createshipperfromprocessortowarehouse {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Processor processor
+}
+
+transaction createshipmentfromprocessortowarehouse {
+  --> Product[] products
+  --> Warehouse warehouse
+  --> Processor processor//shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+}
+
+transaction delveryconfirmedbyprocessortowarehouseshipper {
+  --> Shipment_from_processor_to_warehouse shipmentfromprocessortowarehouse
+}//adding delivered date to a shipment
+
+transaction createshipperfromwarehousetoretailer {
+  o String GST_number
+  o String name
+  o String email
+  o String location
+  --> Warehouse warehouse
+}
+
+transaction createshipmentfromwarehousetoretailer {
+  --> Product[] products
+  --> Warehouse warehouse
+  --> Retailer retailer //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+}
+
+transaction delveryconfirmedbywarehousetoretailershipper {
+  --> Shipment_from_warehouse_to_retailer shipmentfromwarehousetoretailer
+}//adding delivered date to a shipment
+
+

@@ -1,0 +1,4 @@
+event declarations in cto file
+figure out a way so that a processor cannot update the approved status of the product
+probelem - only processor is given the authority to make a product but a lot of participants have to edit it
+add transactions in the cto file

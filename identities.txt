@@ -1,0 +1,18 @@
+7749 -aman
+0438 -naman
+0681 -Colorer
+1768 -Threader
+4567 -shipper(7749)
+9875 -shipper(7749)
+7532 -shipper(0438)
+11 -Item(0438)
+12 -Item(7749)
+13 -Item(7749)
+7734 - QI
+7689 - Shipperfromprocessor
+24 -Product(1768)
+7967 -level1 
+3891 -level2
+4258 -shipper(7967)
+
+//change config to add type of warehouse
