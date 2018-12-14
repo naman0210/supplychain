@@ -1,4 +1,23 @@
 event declarations in cto file
-figure out a way so that a processor cannot update the approved status of the product
-probelem - only processor is given the authority to make a product but a lot of participants have to edit it
-add transactions in the cto file
+acl file
+Queries
+adding an enum(available, not available) with every __  to know who has the product currently
+changing quality check to enum(Rejected, Approved) --done
+when to do the quality check(?) (wih the last processor and before shipping it to warehouse) --done
+function to trace back the origin of the product
+to check if the invoker of the function is the one we want
+to see if error is thrown then transaction doesn't complete
+adding current field with every field(?)
+edit product(?)
+shipment from processor to warehouse transaction can only be invoked if Quality check!='Uninspected'
+
+front end
+issuing identity cards to every participant
+
+1295
+
+to test
+quality inspection enum change (transaction qualityinspection)
+quality check only be done if the last type of processor has the product (transaction qualityinspection)
+added availablity enum (transaction createItem)
+added check for the enum (transaction createshipmentfromproducertoprocessor)

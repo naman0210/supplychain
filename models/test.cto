@@ -31,10 +31,17 @@ asset config identified by key {
   o String[] type
 }
 
+enum Availibility{
+  o Available
+  o Shipped
+}
+
 participant Producer extends member {
   o String Produce
   --> Shipper_from_producer_to_processor[] shipperfromproducertoprocessor optional
   o Integer[] shipmentnumber optional
+  --> Item items optional
+  o Availibility[] availibility optional
 }
 
 asset Item identified by item_ID {
@@ -62,6 +69,8 @@ asset Shipment_from_producer_to_processor identified by shipment_ID {
 participant Processor extends member{
   o String type
   --> Item[] items optional
+  --> Product[] products optional
+  o Availibility[] availibility optional
   --> Shipper_from_processor[] shipperfromprocessor optional
   o Integer[] shipmentnumber optional
 } 
@@ -86,11 +95,17 @@ asset Product identified by product_ID {
   --> Processor[] processors 
   --> Item[] items
   --> QI qualityinspector
-  o Boolean approved default=false
+  o QualityCheck qualitycheck default = "Uninspected" 
   --> Warehouse[] warehouses optional
   --> Shipment_from_processor[] shipmentfromprocessor optional
   --> Shipment_from_warehouse[] shipmentfromwarehouse optional
   --> Retailer retailer optional
+}
+
+enum QualityCheck{
+  o Uninspected
+  o Rejected
+  o Approved
 }
 
 participant QI extends member {
@@ -101,6 +116,7 @@ participant Warehouse extends member {
   --> Product[] products optional
   --> Shipper_from_warehouse[] shipperfromwarehouse optional
   o Integer[] shipmentnumber optional
+  o Availibility[] availibility optional
 }
 
 participant Shipper_from_warehouse extends member {
@@ -115,11 +131,11 @@ asset Shipment_from_warehouse identified by shipment_ID {
   --> Warehouse initiatingwarehouse
   --> Warehouse receivingwarehouse optional
   --> Retailer retailer optional
-  --> Shipment_from_warehouse shipperfromwarehouse
+  --> Shipper_from_warehouse shipperfromwarehouse
 }
 
 participant Retailer extends member {
-  --> Product[] products
+  --> Product[] products optional
 }
 
 transaction createItem {
@@ -158,9 +174,9 @@ transaction createproduct {
 //   --> Item[] items
 // }//if a subsequent processor wants to add a new item to the product
 
-transaction qualityinspection { //left
+transaction qualityinspection { 
   --> Product product
-  o Boolean result
+  o QualityCheck result
 }
 
 transaction createshipperfromprocessor {
@@ -175,14 +191,14 @@ transaction createshipmentfromprocessortowarehouse {
   --> Product[] products
   --> Shipper_from_processor shipperfromprocessor
   --> Warehouse warehouse
-  --> Processor initiatingprocessor //shipper can be added automatically as only he is allowed to invoke the creation of                                      shipment pickup date is also added automatically shipping id is also added automatically
+  --> Processor initiatingprocessor // pickup date is also added automatically shipping id is also added automatically
 }
 
 transaction createshipmentfromprocessortoprocessor {
   --> Product[] products
   --> Shipper_from_processor shipperfromprocessor
   --> Processor receivingprocessor
-  --> Processor initiatingprocessor //shipper can be added automatically as only he is allowed to invoke the creation of                                      shipment pickup date is also added automatically shipping id is also added automatically
+  --> Processor initiatingprocessor //pickup date is also added automatically shipping id is also added automatically
 }
 
 transaction delveryconfirmedbyprocessorshipper {
@@ -201,14 +217,14 @@ transaction createshipmentfromwarehousetoretailer {
   --> Product[] products
   --> Shipper_from_warehouse shipperfromwarehouse
   --> Warehouse initiatingwarehouse
-  --> Retailer retailer //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+  --> Retailer retailer // date is also added automatically shipping id is also added automatically
 }
 
 transaction createshipmentfromwarehousetowarehouse {
   --> Product[] products
   --> Shipper_from_warehouse shipperfromwarehouse
   --> Warehouse initiatingwarehouse
-  --> Warehouse receivingwarehouse //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+  --> Warehouse receivingwarehouse //pickup date is also added automatically shipping id is also added automatically
 }
 
 transaction delveryconfirmedbywarehouseshipper {
@@ -218,4 +234,8 @@ transaction delveryconfirmedbywarehouseshipper {
 transaction initiate {
   o String[] participants 
   o String[] type
+}
+
+transaction traceproduct {
+  --> Product product
 }

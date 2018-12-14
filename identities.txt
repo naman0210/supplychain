@@ -14,5 +14,7 @@
 7967 -level1 
 3891 -level2
 4258 -shipper(7967)
-
-//change config to add type of warehouse
+4236 -shipper(0681)
+7412 -shipper(0999)
+8523 -shipper(3891)
+9512 -retailer
