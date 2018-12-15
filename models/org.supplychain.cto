@@ -18,14 +18,30 @@
 
 namespace org.supplychain
 
-participant Producer identified by GST_number {
+abstract participant member identified by GST_number {
   o String GST_number
   o String name
   o String email
   o String location
+}
+
+asset config identified by key {
+  o String key
+  o String[] participants 
+  o String[] type
+}
+
+enum Availibility{
+  o Available
+  o Shipped
+}
+
+participant Producer extends member {
   o String Produce
   --> Shipper_from_producer_to_processor[] shipperfromproducertoprocessor optional
   o Integer[] shipmentnumber optional
+  --> Item[] items optional
+  o Availibility[] availibility optional
 }
 
 asset Item identified by item_ID {
@@ -36,11 +52,7 @@ asset Item identified by item_ID {
   --> Shipment_from_producer_to_processor shipment_from_producer_to_processor optional
 }
 
-participant Shipper_from_producer_to_processor identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
+participant Shipper_from_producer_to_processor extends member {
   --> Producer producer
 }
 
@@ -54,87 +66,88 @@ asset Shipment_from_producer_to_processor identified by shipment_ID {
   --> Processor processor 
 }
 
-participant Processor identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
+participant Processor extends member{
+  o String type
   --> Item[] items optional
-  --> Shipper_from_processor_to_warehouse[] shipperfromprocessortowarehouse optional
+  o ItemAvailibility[] itemavailibility optional
+  --> Product[] products optional
+  o Availibility[] availibility optional
+  --> Shipper_from_processor[] shipperfromprocessor optional
   o Integer[] shipmentnumber optional
+} 
+
+participant Shipper_from_processor extends member {
+  --> Processor initiatingprocessor  
+}
+
+asset Shipment_from_processor identified by shipment_ID {
+  o String shipment_ID
+  o DateTime pickup
+  o DateTime delivered_date optional
+  --> Product[] products
+  --> Warehouse warehouse optional
+  --> Processor initiatingprocessor
+  --> Processor receivingprocessor optional
+  --> Shipper_from_processor shipperfromprocessor
+}
+
+enum ItemAvailibility {
+  o Used
+  o Unused
 }
 
 asset Product identified by product_ID {
   o String product_ID
-  --> Processor processor
-  --> Item[] items 
-  --> QI quality_inspector
-  o Boolean approved default=false
-  --> Warehouse warehouse optional
+  --> Processor[] processors 
+  --> Item[] items
+  --> QI qualityinspector
+  o QualityCheck qualitycheck default = "Uninspected" 
+  --> Warehouse[] warehouses optional
+  --> Shipment_from_processor[] shipmentfromprocessor optional
+  --> Shipment_from_warehouse[] shipmentfromwarehouse optional
   --> Retailer retailer optional
-  --> Shipment_from_processor_to_warehouse shipmentfromprocessortowarehouse optional
-  --> Shipment_from_warehouse_to_retailer shipmentfromwarehousetoretailer optional
 }
 
-participant QI identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
+enum QualityCheck{
+  o Uninspected
+  o Rejected
+  o Approved
 }
 
-participant Shipper_from_processor_to_warehouse identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
-  --> Processor processor  
+participant QI extends member {
 }
 
-asset Shipment_from_processor_to_warehouse identified by shipment_ID {
-  o String shipment_ID
-  o DateTime pickup
-  o DateTime delivered_date optional
-  --> Product[] products
-  --> Warehouse warehouse
-  --> Processor processor
-  --> Shipper_from_processor_to_warehouse shipperfromprocessortowarehouse
-}
-
-participant Warehouse identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
+participant Warehouse extends member {
+  o String type
   --> Product[] products optional
-  --> Shipper_from_warehouse_to_retailer shipperfromwarehousetoretailer optional
+  --> Shipper_from_warehouse[] shipperfromwarehouse optional
   o Integer[] shipmentnumber optional
+  o Availibility[] availibility optional
 }
 
-participant Shipper_from_warehouse_to_retailer identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
-  --> Warehouse warehouse
+participant Shipper_from_warehouse extends member {
+    --> Warehouse initiatingwarehouse
 }
 
-asset Shipment_from_warehouse_to_retailer identified by shipment_ID {
+asset Shipment_from_warehouse identified by shipment_ID {
   o String shipment_ID
   o DateTime pickup
   o DateTime delivered_date optional
   --> Product[] products
-  --> Retailer retailer
-  --> Warehouse warehouse
-  --> Shipper_from_warehouse_to_retailer shipperfromwarehousetoretailer
+  --> Warehouse initiatingwarehouse
+  --> Warehouse receivingwarehouse optional
+  --> Retailer retailer optional
+  --> Shipper_from_warehouse shipperfromwarehouse
 }
 
-participant Retailer identified by GST_number {
-  o String GST_number
-  o String name
-  o String email
-  o String location
+enum RetailAvailibility{
+  o Available
+  o Sold
+}
+
+participant Retailer extends member {
   --> Product[] products optional
+  o RetailAvailibility[] retailavailibility optional
 }
 
 transaction createItem {
@@ -153,10 +166,11 @@ transaction createshipperfromproducertoprocessor {
 
 transaction createshipmentfromproducertoprocessor {
   --> Item[] items
+  --> Shipper_from_producer_to_processor shipperfromproducertoprocessor
   --> Producer producer 
-  --> Processor processor //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+  --> Processor processor //pickup date is  added automatically shipping id is also added automatically
 }
-  
+
 transaction delveryconfirmedbyproducertoprocessorshipper {
   --> Shipment_from_producer_to_processor shipmentfromproducertoprocessor
 }//adding delivered date to a shipment
@@ -167,12 +181,17 @@ transaction createproduct {
   --> Item[] items 
 }//creating a product
 
-transaction qualityinspection {
+// transaction editproduct {
+//   o String product_ID
+//   --> Item[] items
+// }//if a subsequent processor wants to add a new item to the product
+
+transaction qualityinspection { 
   --> Product product
-  o Boolean result
+  o QualityCheck result
 }
 
-transaction createshipperfromprocessortowarehouse {
+transaction createshipperfromprocessor {
   o String GST_number
   o String name
   o String email
@@ -182,15 +201,23 @@ transaction createshipperfromprocessortowarehouse {
 
 transaction createshipmentfromprocessortowarehouse {
   --> Product[] products
+  --> Shipper_from_processor shipperfromprocessor
   --> Warehouse warehouse
-  --> Processor processor//shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+  --> Processor initiatingprocessor // pickup date is also added automatically shipping id is also added automatically
 }
 
-transaction delveryconfirmedbyprocessortowarehouseshipper {
-  --> Shipment_from_processor_to_warehouse shipmentfromprocessortowarehouse
+transaction createshipmentfromprocessortoprocessor {
+  --> Product[] products
+  --> Shipper_from_processor shipperfromprocessor
+  --> Processor receivingprocessor
+  --> Processor initiatingprocessor //pickup date is also added automatically shipping id is also added automatically
+}
+
+transaction delveryconfirmedbyprocessorshipper {
+  --> Shipment_from_processor shipmentfromprocessor
 }//adding delivered date to a shipment
 
-transaction createshipperfromwarehousetoretailer {
+transaction createshipperfromwarehouse {
   o String GST_number
   o String name
   o String email
@@ -200,12 +227,27 @@ transaction createshipperfromwarehousetoretailer {
 
 transaction createshipmentfromwarehousetoretailer {
   --> Product[] products
-  --> Warehouse warehouse
-  --> Retailer retailer //shipper can be added automatically as only he is allowed to invoke the creation of shipment                               pickup date is also added automatically shipping id is also added automatically
+  --> Shipper_from_warehouse shipperfromwarehouse
+  --> Warehouse initiatingwarehouse
+  --> Retailer retailer // date is also added automatically shipping id is also added automatically
 }
 
-transaction delveryconfirmedbywarehousetoretailershipper {
-  --> Shipment_from_warehouse_to_retailer shipmentfromwarehousetoretailer
+transaction createshipmentfromwarehousetowarehouse {
+  --> Product[] products
+  --> Shipper_from_warehouse shipperfromwarehouse
+  --> Warehouse initiatingwarehouse
+  --> Warehouse receivingwarehouse //pickup date is also added automatically shipping id is also added automatically
+}
+
+transaction delveryconfirmedbywarehouseshipper {
+  --> Shipment_from_warehouse shipmentfromwarehouse
 }//adding delivered date to a shipment
 
+transaction initiate {
+  o String[] participants 
+  o String[] type
+}
 
+transaction traceproduct {
+  --> Product product
+}

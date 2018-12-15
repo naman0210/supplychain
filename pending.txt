@@ -1,23 +1,15 @@
-event declarations in cto file
-acl file
-Queries
-adding an enum(available, not available) with every __  to know who has the product currently
+        event declarations in cto file
+        acl file
+        Queries
+adding an enum(available, not available) with every __  to know who has the product currently --done
 changing quality check to enum(Rejected, Approved) --done
 when to do the quality check(?) (wih the last processor and before shipping it to warehouse) --done
-function to trace back the origin of the product
-to check if the invoker of the function is the one we want
-to see if error is thrown then transaction doesn't complete
-adding current field with every field(?)
-edit product(?)
-shipment from processor to warehouse transaction can only be invoked if Quality check!='Uninspected'
+function to trace back the origin of the product    --done
+to check if the invoker of the function is the one we want  --done
+        to see if error is thrown then transaction doesn't complete
+        edit product(?)
+shipment from processor to warehouse transaction can only be invoked if Quality check!='Uninspected' --done
+if the receiver of shipment doesn't exist then throw error --done
 
 front end
 issuing identity cards to every participant
-
-1295
-
-to test
-quality inspection enum change (transaction qualityinspection)
-quality check only be done if the last type of processor has the product (transaction qualityinspection)
-added availablity enum (transaction createItem)
-added check for the enum (transaction createshipmentfromproducertoprocessor)
