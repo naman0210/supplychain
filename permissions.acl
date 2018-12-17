@@ -16,18 +16,581 @@
  * Sample access control list.
  */
 
+rule Itemcreationtransactioncanonlycreatedbyproducer{
+  description: "Only a producer can create and edited an item"
+  participant(p): "org.supplychain.Producer"
+  operation: ALL
+  resource(v): "org.supplychain.createItem"
+  condition: (v.producer.getIdentifier() == p.getIdentifier())
+  action:ALLOW
+}
+
+rule Itemonlycreatedbyproducer{
+  description: "Only a producer can create and edited an item"
+  participant(p): "org.supplychain.Producer"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.Item"
+  transaction(tx) : "org.supplychain.createItem"
+  condition: (tx.producer.getIdentifier() == p.getIdentifier())
+  action:ALLOW
+}
+
+rule producershouldbeabletoedititself {
+  description: "The producer should be able to update itself"
+  participant(p): "org.supplychain.Producer"
+  operation: UPDATE,READ
+  resource(v): "org.supplychain.Producer"
+  transaction(tx): "org.supplychain.createItem"
+  condition: (p.getIdentifier() == v.getIdentifier() && tx.producer.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule producershouldbeabletocreatethecorrespondingtransaction {
+  description: "Producer should be able to create the transaction to make a shipper"
+  participant(p): "org.supplychain.Producer"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipperfromproducertoprocessor"
+  condition: (p.getIdentifier() == v.producer.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromproducertoprocessorcreatedbyproducer {
+  description: "Shipper from producer to processor only be created and updated by the producer"
+  participant(p): "org.supplychain.Producer"
+  operation: ALL
+  resource(v): "org.supplychain.Shipper_from_producer_to_processor"
+  transaction(tx): "org.supplychain.createshipperfromproducertoprocessor"
+  condition: (p.getIdentifier() == v.producer.getIdentifier()  && tx.producer.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule producershouldbeabletoupdateitself {
+  description: "The producer shiuld be able to update itself"
+  participant(p): "org.supplychain.Producer"
+  operation: UPDATE,READ
+  resource(v): "org.supplychain.Producer"
+  transaction(tx): "org.supplychain.createshipperfromproducertoprocessor"
+  condition: (p.getIdentifier() == v.getIdentifier() && tx.producer.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shippershouldbeallowedtocreatethecorrespondingtransaction {
+  description: "Shipper should be able to create the transaction for the shipment instance"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipmentfromproducertoprocessor"
+  condition: (p.getIdentifier() == v.shipperfromproducertoprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromproducertoprocessorcanonlybecreatedbythecorrespondingshipper {
+  description: "Shipment from producer to processor can only be created and updated by the corresponding shipper"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: CREATE,READ,UPDATE
+  resource(v): "org.supplychain.Shipment_from_producer_to_processor"
+  transaction(tx) : "org.supplychain.createshipmentfromproducertoprocessor"
+  condition: (p.getIdentifier() == v.shipperfromproducertoprocessor.getIdentifier() && tx.shipperfromproducertoprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shippercanupdateproducer {
+  description: "The transaction invoked by the shipper has to update the number of shipments for the producer"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Producer"
+  transaction(tx) : "org.supplychain.createshipmentfromproducertoprocessor"
+  condition: (p.getIdentifier() == tx.shipperfromproducertoprocessor.getIdentifier() && tx.producer.getIdentifier() == v.getIdentifier())
+  action: ALLOW
+}
+
+rule shippercanupdateitems {
+  description: "The transaction invoked by the shipper should also be able to add their details to the item"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Item"
+  transaction(tx) : "org.supplychain.createshipmentfromproducertoprocessor"
+  condition: (p.getIdentifier() == tx.shipperfromproducertoprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shippershouldbeallowedtoenterthedeliverydateofthecorrespondingshipment {
+  description: "Shipper should be allowed to create the transaction to enter the delivered date"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.delveryconfirmedbyproducertoprocessorshipper"
+  condition: (p.getIdentifier() == v.shipperfromproducertoprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromproducertoprocessorcanonlybeupdatedbythecorrespondingshipper {
+  description: "Shipment from producer to processor can only be updated by the corresponding shipper"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Shipment_from_producer_to_processor"
+  transaction(tx) : "org.supplychain.delveryconfirmedbyproducertoprocessorshipper"
+  condition: (p.getIdentifier() == tx.shipmentfromproducertoprocessor.shipperfromproducertoprocessor.getIdentifier() && p.getIdentifier() == v.shipperfromproducertoprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shippershouldbeabletoupdatetheprocessorfortheshipment {
+  description: "The shipper should be able to update the items field of the processor"
+  participant(p): "org.supplychain.Shipper_from_producer_to_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx) : "org.supplychain.delveryconfirmedbyproducertoprocessorshipper"
+  condition: (tx.shipmentfromproducertoprocessor.processor.getIdentifier() == v.getIdentifier() && p.getIdentifier() == tx.shipmentfromproducertoprocessor.shipperfromproducertoprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule processorallowedtoinvoketransactiontocreateproduct {
+  description: "Processor should be allowed to create the transaction to create a product"
+  participant(p): "org.supplychain.Processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createproduct"
+  condition: (p.getIdentifier() == r.processor.getIdentifier())
+  action: ALLOW
+}
+
+rule productcanonlybecreatedbyProcessor{
+  description: "Products can only be created by the processor"
+  participant(p): "org.supplychain.Processor"
+  operation: ALL
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.createproduct" 
+  condition: (p.getIdentifier() == tx.processor.getIdentifier())
+  action: ALLOW
+}
+
+rule processorshouldbeabletoupdateitself {
+  description: "Processor should be able to add products to itself when he has created the product"
+  participant(p): "org.supplychain.Processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx): "org.supplychain.createproduct" 
+  condition: (tx.processor.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.getIdentifier())
+  action: ALLOW
+}
+
+rule processorallowedtpinvoketransactiontocreateshippers {
+  description: "Processor should be able to make the transaction to create its shippers"
+  participant(p): "org.supplychain.Processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipperfromprocessor"
+  condition: (p.getIdentifier() == v.processor.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessorcanonlybecreatedbycorrespondingprocessor {
+  description: "Processor should be able to make its own shipper"
+  participant(p): "org.supplychain.Processor"
+  operation: ALL
+  resource(v): "org.supplychain.Shipper_from_processor"
+  transaction(tx): "org.supplychain.createshipperfromprocessor"
+  condition: (p.getIdentifier() == v.initiatingprocessor.getIdentifier() && tx.processor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule Processorshouldbeabletoupdateitsshippersfield {
+  description: "Processor should be able to update its own shippers field"
+  participant(p): "org.supplychain.Processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx): "org.supplychain.createshipperfromprocessor"
+  condition: (tx.processor.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperallowedtoinvokecreateshipmenttransaction {
+  description: "Shippers should be allowed to create transaction to create shipments"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipmentfromprocessortowarehouse"
+  condition: (p.getIdentifier()== v.shipperfromprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromprocessorcanonlybecreatedbythecorrespondingshipper {
+  description: "Only corresponding shipper should be allowed to create the shipment"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: ALL
+  resource(v): "org.supplychain.Shipment_from_processor"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortowarehouse"
+  condition: (tx.shipperfromprocessor.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.shipperfromprocessor.getIdentifier())  
+  action: ALLOW
+}
+
+rule shippershouldbeabletoupdatetheprocessor {
+  description: "The processor who is shipping the products should be updated by the shipper"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation:READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortowarehouse"
+  condition: (tx.initiatingprocessor.getIdentifier() == v.getIdentifier() && tx.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shippershouldbeabletoupdatetheshipmentnumberintheproductasset {
+  description: "The shipper invoking the transaction should be able to update the products field"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortowarehouse"
+  condition: (tx.shipperfromprocessor.getIdentifier() == p.getIdentifier() && t.products && tx.products.indexOf(v.getIdentifier()) >-1 ) 
+  action: ALLOW
+}
+
+rule shipperallowedtoinvoketransactiontocreateshipment {
+  description: "Shipper should be allowed to create transaction to create the shipment"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipmentfromprocessortoprocessor"
+  condition: (p.getIdentifier() === v.shipperfromprocessor.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromprocessorcanonlybecreatedbythecorrespondingshipperfromprocessortoprocessor {
+  description: "Only corresponding shipper should be allowed to create the shipment"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: ALL
+  resource(v): "org.supplychain.Shipment_from_processor"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortoprocessor"
+  condition: (tx.shipperfromprocessor.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.shipperfromprocessor.getIdentifier())  
+  action: ALLOW
+}
+
+rule shipperfromprocessortoprocessorshouldbeabletoupdatetheprocessor {
+  description: "The processor who is shipping the products should be updated by the shipper"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation:READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortoprocessor"
+  condition: (tx.initiatingprocessor.getIdentifier() == v.getIdentifier() && tx.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessortoprocessorshouldbeabletoupdatetheshipmentnumberintheproductasset {
+  description: "The shipper invoking the transaction should be able to update the products field"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.createshipmentfromprocessortoprocessor"
+  condition: (tx.shipperfromprocessor.getIdentifier() == p.getIdentifier()) 
+  action: ALLOW
+}
+
+rule shippercancreatetransactiontoenterdeliverydate {
+  description: "Shipper can create transaction to enter the delivery date"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.delveryconfirmedbyprocessorshipper"
+  condition: (p.getIdentifier() == v.shipmentfromprocessor.shipperfromprocessor,getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessorshouldbeabletoupdatecorrespondingshipment {
+  description: "Shipper can add the delivered date"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Shipment_from_processor"
+  transaction(tx): "org.supplychain.delveryconfirmedbyprocessorshipper"
+  condition: (tx.shipmentfromprocessor.shipperfromprocessor.getIdentifier() == p.getIdentifier() && v.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessorshouldbeabletoaddtheprocessororwarehousetotheproductasset {
+  description: "Shipper can update the warehouse/processor field of the product asset"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.delveryconfirmedbyprocessorshipper"
+  condition: (tx.shipmentfromprocessor.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessorshouldbeabletoupdatethereceivingprocessor {
+  description: "Shipper should be able to update the receiving processor"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Processor"
+  transaction(tx): "org.supplychain.delveryconfirmedbyprocessorshipper"
+  condition: (tx.shipmentfromprocessor.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromprocessorshouldbeabletoupdatethereceivingwarehouse {
+  description: "Shipper should be able to update the receiving warehouse"
+  participant(p): "org.supplychain.Shipper_from_processor"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Warehouse"
+  transaction(tx): "org.supplychain.delveryconfirmedbyprocessorshipper"
+  condition: (tx.shipmentfromprocessor.shipperfromprocessor.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule warehousecaninvokecreateshippertransaction {
+  description: "Warehouse can create the transaction to create its shippers"
+  participant(p): "org.supplychain.Warehouse"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipperfromwarehouse"
+  condition: (p.getIdentifier() == v.warehouse.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehousecanonlybecreatedbythecorrespondingwarehouse {
+  description: "Shipper from warehouse can only be created by the corresponding warehouse"
+  participant(p): "org.supplychain.Warehouse"
+  operation: ALL
+  resource(v): "org.supplychain.Shipper_from_warehouse"
+  transaction(tx): "org.supplychain.createshipperfromwarehouse"
+  condition: (p.getIdentifier() == tx.warehouse.getIdentifier())
+  action: ALLOW
+}
+
+rule warehouseabletoaddshipperstoitself {
+  description: "The transaction should also allow the warehouses to add shippers to them"
+  participant(p): "org.supplychain.Warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Warehouse"
+  transaction(tx): "org.supplychain.createshipperfromwarehouse"
+  condition: (p.getIdentifier() == v.getIdentifier() && tx.warehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehousecaninvokeshipmenttransaction {
+  description: "Shippers can create the transaction to create shipments from corresponding warehouse"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipmentfromwarehousetowarehouse"
+  condition: (p.getIdentifier() == r.shipperfromwarehouse.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromwarehousecanonlybecreatedbythecorrespondingshipper {
+  description: "Only corresponding shipper should be allowed to create the shipment"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: ALL
+  resource(v): "org.supplychain.Shipment_from_warehouse"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetowarehouse"
+  condition: (tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.shipperfromwarehouse.getIdentifier())  
+  action: ALLOW
+}
+
+rule shippershouldbeabletoupdatethewarehouse {
+  description: "The processor who is shipping the products should be updated by the shipper"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation:READ,UPDATE
+  resource(v): "org.supplychain.Warehouse"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetowarehouse"
+  condition: (tx.initiatingwarehouse.getIdentifier() == v.getIdentifier() && tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehouseshouldbeabletoupdatetheshipmentnumberintheproductasset {
+  description: "The shipper invoking the transaction should be able to update the products field"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetowarehouse"
+  condition: (tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier()) 
+  action: ALLOW
+}
+
+rule shipperfromwarehousecaninvokeshipmentfromwarehousetoretailertransaction {
+  description: "Shippers can create the transaction to create shipments from corresponding warehouse"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.createshipmentfromwarehousetoretailer"
+  condition: (p.getIdentifier() == r.shipperfromwarehouse.getIdentifier())
+  action: ALLOW
+}
+
+rule shipmentfromwarehousecanonlybecreatedbythecorrespondingshipperfromwarehousetoretailer {
+  description: "Only corresponding shipper should be allowed to create the shipment"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: ALL
+  resource(v): "org.supplychain.Shipment_from_warehouse"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetoretailer"
+  condition: (tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier() && p.getIdentifier() == v.shipperfromwarehouse.getIdentifier())  
+  action: ALLOW
+}
+
+rule shipperfromwarehousetoretailershouldbeabletoupdatethewarehouse {
+  description: "The processor who is shipping the products should be updated by the shipper"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation:READ,UPDATE
+  resource(v): "org.supplychain.Warehouse"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetoretailer"
+  condition: (tx.initiatingwarehouse.getIdentifier() == v.getIdentifier() && tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehousetoretailershouldbeabletoupdatetheshipmentnumberintheproductasset {
+  description: "The shipper invoking the transaction should be able to update the products field"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.createshipmentfromwarehousetoretailer"
+  condition: (tx.shipperfromwarehouse.getIdentifier() == p.getIdentifier()) 
+  action: ALLOW
+}
+
+rule shippercaninvoketransactiontoenterdeliverydate {
+  description: "Shippers can update the delivery date for shipments"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.delveryconfirmedbywarehouseshipper"
+  condition: (p.getIdentifier() == r.shipmentfromwarehouse.shipperfromwarehouse.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehouseshouldbeabletoupdatecorrespondingshipment {
+  description: "Shipper can add the delivered date"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Shipment_from_warehouse"
+  transaction(tx): "org.supplychain.delveryconfirmedbywarehouseshipper"
+  condition: (tx.shipmentfromwarehouse.shipperfromwarehouse.getIdentifier() == p.getIdentifier() && v.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehouseshouldbeabletoaddtheprocessororwarehousetotheproductasset {
+  description: "Shipper can update the warehouse/retailer field of the product asset"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.delveryconfirmedbywarehouseshipper"
+  condition: (tx.shipmentfromwarehouse.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehouseshouldbeabletoupdatethereceivingretailer {
+  description: "Shipper should be able to update the receiving retailer"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Retailer"
+  transaction(tx): "org.supplychain.delveryconfirmedbywarehouseshipper"
+  condition: (tx.shipmentfromwarehouse.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule shipperfromwarehouseshouldbeabletoupdatethereceivingwarehouse {
+  description: "Shipper should be able to update the receiving warehouse"
+  participant(p): "org.supplychain.Shipper_from_warehouse"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Warehouse"
+  transaction(tx): "org.supplychain.delveryconfirmedbywarehouseshipper"
+  condition: (tx.shipmentfromwarehouse.shipperfromwarehouse.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule qualityinspectorcaninvokeinspectiontrnsaction {
+  description: "Quality inspector can create transaction to inspect a product"
+  participant(p): "org.supplychain.QI"
+  operation: READ,CREATE
+  resource(v): "org.supplychain.qualityinspection"
+  condition: (p.getIdentifier() == v.product.qualityinspector.getIdentifier())
+  action: ALLOW
+}
+
+rule Qualityinspectioncanonlybedonebyqualityinspector {
+  description: "Only quality inspector should be able to perform the inspection"
+  participant(p): "org.supplychain.QI"
+  operation: READ,UPDATE
+  resource(v): "org.supplychain.Product"
+  transaction(tx): "org.supplychain.qualityinspection"
+  condition: (tx.product.qualityinspector.getIdentifier() == p.getIdentifier())
+  action: ALLOW
+}
+
+rule noqualityinspectorallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.QI"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+rule noshipperfromwarehouseallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Shipper_from_warehouse"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+rule noshipperfromprocessorallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Shipper_from_processor"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+rule noshipperfromproducerallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Shipper_from_producer_to_processor"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+rule noretailerallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Retailer"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+
+rule nowarehouseallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Warehouse"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+
+rule noprocessorallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Processor"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+
+rule noproducerallowedtodoanythingtoconfigasset {
+  description: "Config asset only to be created and updated by the admin."
+  participant: "org.supplychain.Producer"
+  operation: CREATE,UPDATE,DELETE
+  resource: "org.supplychain.config"
+  action: DENY
+}
+
+
+
 rule participants {
     description: "Grant business network administrators full access to user resources"
-  	participant: "org.supplychain.**"
+  	participant: "org.hyperledger.composer.system.Participant"
     operation: READ
     resource: "org.supplychain.**"
     action: ALLOW
 }
-rule Everyparticipanthasaccesstosystemresources {
+
+rule Everyparticipanthasaccesstoreadsystemresources {
   description: "System resources granted to all participants"
-  participant: "org.supplychain.**"
-  operation: ALL
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: READ
   resource: "org.hyperledger.composer.system.**"
+  action: ALLOW
+}
+rule Everyparticipanthasaccesstocratehistoriansystemresources {
+  description: "System resources granted to all participants"
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: READ,CREATE,UPDATE
+  resource: "org.hyperledger.composer.system.HistorianRecord"
   action: ALLOW
 }
 

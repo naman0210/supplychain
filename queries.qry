@@ -1,0 +1,36 @@
+query Q1{
+  description: "Find the next in config"
+  statement: 
+  			SELECT org.supplychain.Processor WHERE (_$participanttypewanted == type)
+}
+
+
+query Q2 {
+  description: "View all the shippers of a producer"
+  statement: 
+    SELECT org.supplychain.Shipper_from_producer_to_processor WHERE (_$producer == producer)
+}
+
+query Q3 {
+  description: "View all the shippers of a processor"
+  statement: 
+    SELECT org.supplychain.Shipper_from_processor WHERE (_$processor == initiatingprocessor)
+}
+
+query Q4 {
+  description: "View all shippers of a warehouse"
+  statement: 
+    SELECT org.supplychain.Shipper_from_warehouse WHERE (_$warehouse == initiatingwarehouse)
+}
+
+query Q5 {
+  description: "View all the items that are ready to be inspected"
+  statement: 
+    SELECT org.supplychain.Product WHERE (qualitycheck == "Uninspected")
+}
+
+query Q6 {
+  description: "See all the items with it currently"
+  statement: 
+    SELECT org.supplychain.Producer
+}

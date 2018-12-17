@@ -1,5 +1,5 @@
         event declarations in cto file
-        acl file
+acl file  --done
         Queries
 adding an enum(available, not available) with every __  to know who has the product currently --done
 changing quality check to enum(Rejected, Approved) --done
@@ -13,3 +13,21 @@ if the receiver of shipment doesn't exist then throw error --done
 
 front end
 issuing identity cards to every participant
+
+Able to view its shippers
+Able to view the items/products with it currently
+
+Able to view the next in config for its creater
+Able to view items with creater
+Able to view all its shipments
+
+See all products with the enum Uninspected
+
+
+
+
+
+
+introduce want to ship
+
+introduce ready to inspect
