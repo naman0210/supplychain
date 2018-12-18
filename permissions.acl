@@ -16,6 +16,15 @@
  * Sample access control list.
  */
 
+rule fff{
+ description: ""
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: READ,CREATE
+  resource(v): "org.hyperledger.composer.system.Transaction"
+  condition: (true)
+  action:ALLOW
+}
+
 rule Itemcreationtransactioncanonlycreatedbyproducer{
   description: "Only a producer can create and edited an item"
   participant(p): "org.supplychain.Producer"

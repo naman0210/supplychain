@@ -1,26 +1,26 @@
 query Q1{
   description: "Find the next in config"
   statement: 
-  			SELECT org.supplychain.Processor WHERE (_$participanttypewanted == type)
+  	SELECT org.supplychain.Processor WHERE (_$participanttypewanted == type)
 }
 
 
 query Q2 {
   description: "View all the shippers of a producer"
   statement: 
-    SELECT org.supplychain.Shipper_from_producer_to_processor WHERE (_$producer == producer)
+    SELECT org.supplychain.Producer WHERE (_$gstnum == GST_number)
 }
 
 query Q3 {
   description: "View all the shippers of a processor"
   statement: 
-    SELECT org.supplychain.Shipper_from_processor WHERE (_$processor == initiatingprocessor)
+    SELECT org.supplychain.Processor WHERE (_$gstnum == GST_number)
 }
 
 query Q4 {
   description: "View all shippers of a warehouse"
   statement: 
-    SELECT org.supplychain.Shipper_from_warehouse WHERE (_$warehouse == initiatingwarehouse)
+    SELECT org.supplychain.Warehouse WHERE (_$gstnum == GST_number)
 }
 
 query Q5 {
@@ -32,5 +32,41 @@ query Q5 {
 query Q6 {
   description: "See all the items with it currently"
   statement: 
-    SELECT org.supplychain.Producer
+    SELECT org.supplychain.Processor WHERE (_$gstnum == GST_number)
+}
+
+query Q7 {
+  description: "See the producer of a corresponding shipper from producer"
+  statement: 
+    SELECT org.supplychain.Producer WHERE (shipperfromproducertoprocessor CONTAINS _$shipper)
+}
+
+query Q8 {
+  description: "See the processor of a corresponding shipper from processor"
+  statement: 
+    SELECT org.supplychain.Shipper_from_processor WHERE (_$gstnum == GST_number)
+}
+
+query Q9 {
+  description: "See the warehouse of a corresponding shipper from warehouse"
+  statement: 
+    SELECT org.supplychain.Shipper_from_warehouse WHERE (_$gstnum == GST_number)
+}
+
+query Q10 {
+  description: "See all the shipments of a particular shipper from producer"
+  statement: 
+    SELECT org.supplychain.Shipment_from_producer_to_processor WHERE (_$shipper == shipperfromproducertoprocessor) 
+}
+
+query Q11 {
+  description: "See all the shipments of a particular shipper from processor"
+  statement: 
+    SELECT org.supplychain.Shipment_from_processor WHERE (_$shipper == shipperfromprocessor) 
+}
+
+query Q12 {
+  description: "See all the shipments of a particular shipper from warehouse"
+  statement: 
+    SELECT org.supplychain.Shipment_from_warehouse WHERE (_$shipper == shipperfromwarehouse) 
 }

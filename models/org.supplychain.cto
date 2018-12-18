@@ -252,5 +252,46 @@ transaction traceproduct {
   --> Product product
 }
 
+@commit(false)
 transaction runquery{
+}
+
+@commit(false)
+transaction queryviewshippersofproducer {
+}
+
+@commit(false)
+transaction queryviewshippersofprocessor {
+}
+
+@commit(false)
+transaction queryviewshippersofwarehouses {
+}
+
+@commit(false)
+transaction  queryviewitemsunusedwithprocessor {
+}
+
+@commit(false)
+transaction queryviewitemswiththeproducer {
+}
+
+@commit(false)
+transaction queryviewproductswithprocessor {
+}
+
+@commit(false)
+transaction queryviewproductswithwarehouse {
+}
+
+@commit(false)
+transaction queryviewshipmentsfromproducer {
+}
+
+@commit(false)
+transaction queryviewshipmentsfromprocessor {
+}
+
+@commit(false)
+transaction queryviewshipmentsfromwarehouse {
 }
