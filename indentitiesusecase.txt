@@ -1,0 +1,20 @@
+Producer - 7749                         naman                 
+Processor(Spinning) - 1768              kaleen
+Processor(Weaving) - 9875               radha
+Processor(Cutting) - 8523               guddu
+Processor(Embroidery) - 7532            charan
+Processor(Stitching) - 7412             munna
+Processor(Packaging) - 6248             rohit
+Warehouse(warehouse) - 9512             kartik
+Retailer - 7894                         lucky
+
+QI -7734                                Rajesh
+
+shipper(naman) - 9632                   rahul
+shipper(kaleen) - 1598                  karan
+shipper(radha) - 4646                   brian
+shipper(guddu) - 3131                   Joe
+shipper(charan) - 6565                  Virat
+shipper(munna) - 9595                   sachin
+shipper(rohit) - 7171                   ashwin
+shipper(kartik) - 2222                  piyush
