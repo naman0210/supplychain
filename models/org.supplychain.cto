@@ -110,6 +110,7 @@ asset Product identified by product_ID {
 
 enum QualityCheck{
   o Uninspected
+  o Ready 
   o Rejected
   o Approved
 }
@@ -252,6 +253,10 @@ transaction traceproduct {
   --> Product product
 }
 
+transaction getreadyforinspection {
+  --> Product product
+}
+
 @commit(false)
 transaction runquery{
 }
@@ -294,4 +299,8 @@ transaction queryviewshipmentsfromprocessor {
 
 @commit(false)
 transaction queryviewshipmentsfromwarehouse {
+}
+
+@commit(false)
+transaction queryviewproductstoinspect {
 }

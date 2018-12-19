@@ -26,5 +26,3 @@ See all products with the enum Uninspected
 
 
 introduce want to ship
-
-introduce ready to inspect

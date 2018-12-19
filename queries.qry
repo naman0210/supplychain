@@ -26,7 +26,7 @@ query Q4 {
 query Q5 {
   description: "View all the items that are ready to be inspected"
   statement: 
-    SELECT org.supplychain.Product WHERE (qualitycheck == "Uninspected")
+    SELECT org.supplychain.Product WHERE (qualitycheck == "Ready")
 }
 
 query Q6 {
@@ -44,13 +44,13 @@ query Q7 {
 query Q8 {
   description: "See the processor of a corresponding shipper from processor"
   statement: 
-    SELECT org.supplychain.Shipper_from_processor WHERE (_$gstnum == GST_number)
+    SELECT org.supplychain.Processor WHERE (shipperfromprocessor CONTAINS _$shipper)
 }
 
 query Q9 {
   description: "See the warehouse of a corresponding shipper from warehouse"
   statement: 
-    SELECT org.supplychain.Shipper_from_warehouse WHERE (_$gstnum == GST_number)
+    SELECT org.supplychain.Warehouse WHERE (shipperfromwarehouse CONTAINS _$shipper)
 }
 
 query Q10 {
