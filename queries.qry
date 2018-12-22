@@ -8,7 +8,7 @@ query Q1{
 query Q2 {
   description: "View all the shippers of a producer"
   statement: 
-    SELECT org.supplychain.Producer WHERE (_$gstnum == GST_number)
+    SELECT org.supplychain.Shipper_from_producer_to_processor WHERE (_$producer == producer)
 }
 
 query Q3 {

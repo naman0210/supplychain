@@ -151,12 +151,14 @@ participant Retailer extends member {
   o RetailAvailibility[] retailavailibility optional
 }
 
+@returns(String)
 transaction createItem {
   o String item_ID
   o String name
   --> Producer producer //date will be added automatically and we check if this field is same as the invoker
 }
 
+@returns(String)
 transaction createshipperfromproducertoprocessor {
   o String GST_number
   o String name
@@ -165,6 +167,7 @@ transaction createshipperfromproducertoprocessor {
    --> Producer producer  //we check if this field is same as the invoker
 }
 
+@returns(String)
 transaction createshipmentfromproducertoprocessor {
   --> Item[] items
   --> Shipper_from_producer_to_processor shipperfromproducertoprocessor
@@ -172,10 +175,12 @@ transaction createshipmentfromproducertoprocessor {
   --> Processor processor //pickup date is  added automatically shipping id is also added automatically
 }
 
+@returns(String)
 transaction delveryconfirmedbyproducertoprocessorshipper {
   --> Shipment_from_producer_to_processor shipmentfromproducertoprocessor
 }//adding delivered date to a shipment
 
+@returns(String)
 transaction createproduct {
   o String product_ID
   --> Processor processor
@@ -187,11 +192,13 @@ transaction createproduct {
 //   --> Item[] items
 // }//if a subsequent processor wants to add a new item to the product
 
+@returns(String)
 transaction qualityinspection { 
   --> Product product
   o QualityCheck result
 }
 
+@returns(String)
 transaction createshipperfromprocessor {
   o String GST_number
   o String name
@@ -200,6 +207,7 @@ transaction createshipperfromprocessor {
   --> Processor processor
 }
 
+@returns(String)
 transaction createshipmentfromprocessortowarehouse {
   --> Product[] products
   --> Shipper_from_processor shipperfromprocessor
@@ -207,6 +215,7 @@ transaction createshipmentfromprocessortowarehouse {
   --> Processor initiatingprocessor // pickup date is also added automatically shipping id is also added automatically
 }
 
+@returns(String)
 transaction createshipmentfromprocessortoprocessor {
   --> Product[] products
   --> Shipper_from_processor shipperfromprocessor
@@ -214,10 +223,12 @@ transaction createshipmentfromprocessortoprocessor {
   --> Processor initiatingprocessor //pickup date is also added automatically shipping id is also added automatically
 }
 
+@returns(String)
 transaction delveryconfirmedbyprocessorshipper {
   --> Shipment_from_processor shipmentfromprocessor
 }//adding delivered date to a shipment
 
+@returns(String)
 transaction createshipperfromwarehouse {
   o String GST_number
   o String name
@@ -226,6 +237,7 @@ transaction createshipperfromwarehouse {
   --> Warehouse warehouse
 }
 
+@returns(String)
 transaction createshipmentfromwarehousetoretailer {
   --> Product[] products
   --> Shipper_from_warehouse shipperfromwarehouse
@@ -233,6 +245,7 @@ transaction createshipmentfromwarehousetoretailer {
   --> Retailer retailer // date is also added automatically shipping id is also added automatically
 }
 
+@returns(String)
 transaction createshipmentfromwarehousetowarehouse {
   --> Product[] products
   --> Shipper_from_warehouse shipperfromwarehouse
@@ -240,28 +253,34 @@ transaction createshipmentfromwarehousetowarehouse {
   --> Warehouse receivingwarehouse //pickup date is also added automatically shipping id is also added automatically
 }
 
+@returns(String)
 transaction delveryconfirmedbywarehouseshipper {
   --> Shipment_from_warehouse shipmentfromwarehouse
 }//adding delivered date to a shipment
 
+@returns(String)
 transaction initiate {
   o String[] participants 
   o String[] type
 }
 
+@returns(String[])
 transaction traceproduct {
   --> Product product
 }
 
+@returns(String)
 transaction getreadyforinspection {
   --> Product product
 }
 
 @commit(false)
+@returns(Integer[])
 transaction runquery{
 }
 
 @commit(false)
+@returns(Shipper_from_producer_to_processor[])
 transaction queryviewshippersofproducer {
 }
 

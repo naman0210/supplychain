@@ -3,7 +3,7 @@
     "composer": "^0.20.5"
   },
   "name": "supply_chain_management",
-  "version": "0.0.1",
+  "version": "0.0.19",
   "description": "The application is supposed to track the supply chain.",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/supply_chain_management.bna",
