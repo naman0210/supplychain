@@ -276,7 +276,7 @@ transaction getreadyforinspection {
 
 @commit(false)
 @returns(Integer[])
-transaction runquery{
+transaction runquery{ //has to be changed
 }
 
 @commit(false)
@@ -285,41 +285,51 @@ transaction queryviewshippersofproducer {
 }
 
 @commit(false)
+@returns(Shipper_from_processor[])
 transaction queryviewshippersofprocessor {
 }
 
 @commit(false)
+@returns(Shipper_from_warehouse[])
 transaction queryviewshippersofwarehouses {
 }
 
 @commit(false)
+@returns(Item[])
 transaction  queryviewitemsunusedwithprocessor {
 }
 
 @commit(false)
+@returns(Item[])
 transaction queryviewitemswiththeproducer {
 }
 
 @commit(false)
+@returns(Product[])
 transaction queryviewproductswithprocessor {
 }
 
 @commit(false)
+@returns(Product[])
 transaction queryviewproductswithwarehouse {
 }
 
 @commit(false)
+@returns(Shipment_from_producer_to_processor[])
 transaction queryviewshipmentsfromproducer {
 }
 
 @commit(false)
+@returns(Shipment_from_processor[])
 transaction queryviewshipmentsfromprocessor {
 }
 
 @commit(false)
+@returns(Shipment_from_warehouse[])
 transaction queryviewshipmentsfromwarehouse {
 }
 
 @commit(false)
+@returns(Product[])
 transaction queryviewproductstoinspect {
 }

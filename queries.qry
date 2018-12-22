@@ -14,13 +14,13 @@ query Q2 {
 query Q3 {
   description: "View all the shippers of a processor"
   statement: 
-    SELECT org.supplychain.Processor WHERE (_$gstnum == GST_number)
+    SELECT org.supplychain.Shipper_from_processor WHERE (_$processor == initiatingprocessor)
 }
 
 query Q4 {
   description: "View all shippers of a warehouse"
   statement: 
-    SELECT org.supplychain.Warehouse WHERE (_$gstnum == GST_number)
+    SELECT org.supplychain.Shipper_from_warehouse WHERE (_$warehouse == initiatingwarehouse)
 }
 
 query Q5 {
